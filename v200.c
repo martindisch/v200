@@ -297,7 +297,7 @@ void dump_registers(void)
         perror("dump_registers");
         return;
     }
-    uint *regs = malloc(REGISTER_COUNT * sizeof(uint));
+    unsigned int *regs = malloc(REGISTER_COUNT * sizeof(unsigned int));
     int i;
 
     // Read all registers
@@ -305,7 +305,7 @@ void dump_registers(void)
         regs[i] = m68k_get_reg(NULL, i);
     }
     // Write register contents to file
-    fwrite(regs, sizeof(uint), REGISTER_COUNT, fh);
+    fwrite(regs, sizeof(unsigned int), REGISTER_COUNT, fh);
 
     fclose(fh);
     free(regs);
@@ -523,9 +523,9 @@ int main(int argc, char **argv)
         m68k_set_reg(M68K_REG_PC, m68k_read_memory_32(FLASH_BASE + 4));
     } else {
         printf("Loading register dump\n");
-        uint *regs = malloc(REGISTER_COUNT * sizeof(uint));
+        unsigned int *regs = malloc(REGISTER_COUNT * sizeof(unsigned int));
         // Load register contents from file
-        fread(regs, sizeof(uint), REGISTER_COUNT, fh);
+        fread(regs, sizeof(unsigned int), REGISTER_COUNT, fh);
         int i;
         // Restore register contents
         for (i = 0; i < REGISTER_COUNT; i++) {
