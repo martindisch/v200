@@ -7,7 +7,9 @@ screen.pbm
 memory.bin
 flash.bin
 
+# ROMs
 /roms/
+*.v2u
 
 # Musashi generated sources
 /m68kmake
