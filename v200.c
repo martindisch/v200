@@ -33,6 +33,9 @@
 
 #define FRAME_CYCLES    (FRAME_TICKS * CYCLES_PER_TICK)
 
+/* Find the number of registers based on the value of the last enum element */
+#define REGISTER_COUNT M68K_REG_CPU_TYPE + 1
+
 uint8_t io[32];
 void *ti_ram = NULL, *ti_flash = NULL;
 
@@ -287,6 +290,27 @@ void dump_flash(void)
     fclose(fh);
 }
 
+void dump_registers(void)
+{
+    FILE *fh = fopen("registers.bin", "w");
+    if (!fh) {
+        perror("dump_registers");
+        return;
+    }
+    unsigned int *regs = malloc(REGISTER_COUNT * sizeof(unsigned int));
+    int i;
+
+    // Read all registers
+    for (i = 0; i < REGISTER_COUNT; i++) {
+        regs[i] = m68k_get_reg(NULL, i);
+    }
+    // Write register contents to file
+    fwrite(regs, sizeof(unsigned int), REGISTER_COUNT, fh);
+
+    fclose(fh);
+    free(regs);
+}
+
 void cpu_whereami(void)
 {
     printf("D0 = %08x | D1 = %08x | D2 = %08x | D3 = %08x\n",
@@ -469,14 +493,46 @@ int main(int argc, char **argv)
     ti_ram = malloc(RAM_SIZE);
     ti_flash = malloc(FLASH_SIZE);
 
-    read_rom(argv[1]);
+    FILE *fh = fopen("flash.bin", "r");
+    if (!fh) {
+        printf("No flash dump found, starting fresh\n");
+        read_rom(argv[1]);
+    } else {
+        printf("Loading flash dump\n");
+        fread(ti_flash, 1, FLASH_SIZE, fh);
+        fclose(fh);
+    }
+
+    fh = fopen("memory.bin", "r");
+    if (!fh) {
+        printf("No memory dump found, starting fresh\n");
+    } else {
+        printf("Loading memory dump\n");
+        fread(ti_ram, 1, RAM_SIZE, fh);
+        fclose(fh);
+    }
 
     m68k_init();
     m68k_set_cpu_type(M68K_CPU_TYPE_68000);
     m68k_pulse_reset();
 
-    m68k_set_reg(M68K_REG_SP, m68k_read_memory_32(FLASH_BASE + 0));
-    m68k_set_reg(M68K_REG_PC, m68k_read_memory_32(FLASH_BASE + 4));
+    fh = fopen("registers.bin", "r");
+    if (!fh) {
+        printf("No register dump found, starting fresh\n");
+        m68k_set_reg(M68K_REG_SP, m68k_read_memory_32(FLASH_BASE + 0));
+        m68k_set_reg(M68K_REG_PC, m68k_read_memory_32(FLASH_BASE + 4));
+    } else {
+        printf("Loading register dump\n");
+        unsigned int *regs = malloc(REGISTER_COUNT * sizeof(unsigned int));
+        // Load register contents from file
+        fread(regs, sizeof(unsigned int), REGISTER_COUNT, fh);
+        int i;
+        // Restore register contents
+        for (i = 0; i < REGISTER_COUNT; i++) {
+            m68k_set_reg(i, regs[i]);
+        }
+        free(regs);
+    }
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
@@ -552,6 +608,11 @@ int main(int argc, char **argv)
                 int key;
                 switch (ev.type) {
                     case SDL_QUIT:
+                        printf("Dumping memory, flash and registers...\n");
+                        dump_memory();
+                        dump_flash();
+                        dump_registers();
+                        printf("Done\n");
                         return 0;
                     case SDL_KEYDOWN:
                     case SDL_KEYUP:

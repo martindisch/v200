@@ -6,6 +6,7 @@
 screen.pbm
 memory.bin
 flash.bin
+registers.bin
 
 # ROMs
 /roms/
