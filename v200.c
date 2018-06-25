@@ -419,11 +419,11 @@ int sdl_to_ti_kbd(SDL_Keycode key)
         case SDLK_r:        return 28;
         case SDLK_f:        return 29;
         case SDLK_c:        return 30;
-        case SDLK_BACKSLASH: return 31; // store
+        case SDLK_KP_3:     return 31; // store
 
         case SDLK_COMMA:    return 32;
-        case SDLK_RIGHTBRACKET: return 33; // paren right
-        case SDLK_LEFTBRACKET:  return 34; // paren left
+        case SDLK_KP_2:     return 33; // paren right
+        case SDLK_KP_1:     return 34; // paren left
         case SDLK_F2:       return 35;
         case SDLK_t:        return 36;
         case SDLK_g:        return 37;
@@ -455,7 +455,7 @@ int sdl_to_ti_kbd(SDL_Keycode key)
         case SDLK_i:        return 60;
         case SDLK_k:        return 61;
         case SDLK_m:        return 62;
-        case SDLK_EQUALS:   return 63;
+        case SDLK_KP_6:     return 63; // equals
 
                             // no key @ 64
         case SDLK_ESCAPE:   return 65;
